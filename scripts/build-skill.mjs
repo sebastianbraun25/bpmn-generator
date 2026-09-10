@@ -12,17 +12,25 @@ const outPath = join(repoRoot, outName);
 // Inclusion rules: SKILL.md + scripts/*.js (no tests, no agents/, no robustness/, no node_modules)
 //                  + scripts/config.json + scripts/package.json
 //                  + references/*.md + references/*.json (no omg-spec/, no review-set/)
+// NOTE (local patch): the upstream `/segment/` substring checks assume POSIX paths and
+// silently never match on Windows (backslash-separated paths), which lets node_modules/
+// leak into the zip file list and blows past the Windows command-line length limit.
+// hasSegment() splits on both separators so the exclusion works on every platform.
+function hasSegment(full, seg) {
+  return full.split(/[\\/]/).includes(seg);
+}
+
 const includes = [
   'SKILL.md',
   ...walk(join(repoRoot, 'scripts'), (full, name) => {
-    if (full.includes('/node_modules/')) return false;
-    if (full.includes('/agents/') || full.includes('/robustness/')) return false;
+    if (hasSegment(full, 'node_modules')) return false;
+    if (hasSegment(full, 'agents') || hasSegment(full, 'robustness')) return false;
     if (name.endsWith('.test.js')) return false;
     // Note: build-skill.mjs is intentionally excluded by the `.js`-only rule (not `.mjs`).
     return name.endsWith('.js') || name === 'config.json' || name === 'package.json';
   }).map(f => relative(repoRoot, f)),
   ...walk(join(repoRoot, 'references'), (full, name) => {
-    if (full.includes('/omg-spec/') || full.includes('/review-set/')) return false;
+    if (hasSegment(full, 'omg-spec') || hasSegment(full, 'review-set')) return false;
     return name.endsWith('.md') || name.endsWith('.json');
   }).map(f => relative(repoRoot, f)),
 ];
