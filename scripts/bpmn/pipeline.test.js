@@ -3908,6 +3908,46 @@ describe('logicCoreToElk — conditional ELK wrapping', () => {
   });
 });
 
+describe('ELK wrapping — graceful fallback on a laned graph with a back-edge', () => {
+  // Reproduces a real crash: elkjs's MULTI_EDGE wrapping strategy can throw
+  // (not just render badly) once a graph combines many nodes with a
+  // back-edge (a rework/retry loop) — the exact shape of the "Kundensuche"
+  // fixture that first surfaced this. `wide-pipeline.json` alone (linear,
+  // no cycle) does not exercise this path.
+  const mkLanedCyclicLc = () => {
+    const nodes = [
+      { id: 's', type: 'startEvent', name: 'Start', lane: 'l1' },
+      { id: 'gw1', type: 'exclusiveGateway', name: 'Suchsystem?', lane: 'l1' },
+    ];
+    for (let i = 1; i <= 18; i++) {
+      nodes.push({ id: `t${i}`, type: 'userTask', name: `Schritt ${i}`, lane: 'l1' });
+    }
+    nodes.push({ id: 'gw2', type: 'exclusiveGateway', name: 'Nochmal?', lane: 'l1' });
+    nodes.push({ id: 'e', type: 'endEvent', name: 'Ende', lane: 'l1' });
+    const edges = [
+      { id: 'f0', source: 's', target: 'gw1' },
+      { id: 'f1', source: 'gw1', target: 't1' },
+    ];
+    for (let i = 1; i < 18; i++) edges.push({ id: `f${i + 1}`, source: `t${i}`, target: `t${i + 1}` });
+    edges.push({ id: 'f19', source: 't18', target: 'gw2' });
+    edges.push({ id: 'fend', source: 'gw2', target: 'e', label: 'Ja' });
+    edges.push({ id: 'floop', source: 'gw2', target: 'gw1', label: 'Nein' }); // back-edge: late gateway loops to the early one
+    return {
+      id: 'Process_LanedCyclic', name: 'Laned Cyclic',
+      lanes: [{ id: 'l1', name: 'Team' }],
+      nodes, edges,
+    };
+  };
+
+  test('runPipeline with visualRefinement does not throw on a laned graph with a back-edge above the wrapping threshold', async () => {
+    const lc = mkLanedCyclicLc();
+    const result = await runPipeline(lc, { visualRefinement: true });
+    expect(result.validation.errors).toEqual([]);
+    expect(result.bpmnXml).toBeTruthy();
+    expect(result.svg).toBeTruthy();
+  });
+});
+
 describe('wide-pipeline matrix', () => {
   const lc = JSON.parse(readFileSync('../tests/fixtures/wide-pipeline.json', 'utf8'));
 

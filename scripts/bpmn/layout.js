@@ -310,10 +310,43 @@ function stackCollaborationVertically(layouted) {
   return layouted;
 }
 
+/**
+ * Remove the `elk.layered.wrapping.*` keys from every `properties` block in the
+ * graph (root + children, recursively — multi-pool graphs nest a `properties`
+ * block per pool). Returns true if anything was actually removed, so a caller
+ * can tell "retried without wrapping" apart from "nothing to strip".
+ */
+function stripWrappingProps(node) {
+  let stripped = false;
+  if (node?.properties && 'elk.layered.wrapping.strategy' in node.properties) {
+    delete node.properties['elk.layered.wrapping.strategy'];
+    delete node.properties['elk.layered.wrapping.additionalEdgeSpacing'];
+    stripped = true;
+  }
+  for (const child of node?.children ?? []) {
+    stripped = stripWrappingProps(child) || stripped;
+  }
+  return stripped;
+}
+
 async function runElkLayout(elkGraph) {
   const elk = new ELK();
-  const layouted = await elk.layout(elkGraph);
-  return stackCollaborationVertically(layouted);
+  try {
+    const layouted = await elk.layout(elkGraph);
+    return stackCollaborationVertically(layouted);
+  } catch (err) {
+    // elkjs's MULTI_EDGE wrapping strategy (opt-in via visualRefinement, see
+    // resolveWrappingOpts) can throw on graphs that combine many nodes with a
+    // back-edge (a rework/retry loop) — an elkjs limitation, not a defect in
+    // the Logic-Core. Retry once with wrapping stripped rather than crashing
+    // the whole pipeline; rethrow unchanged if there was no wrapping to strip
+    // (a real error) or if the retry fails too.
+    const retryGraph = JSON.parse(JSON.stringify(elkGraph));
+    if (!stripWrappingProps(retryGraph)) throw err;
+    console.warn('[bpmn-generator] ELK layout failed with MULTI_EDGE wrapping enabled; retrying without wrapping:', err.message);
+    const layouted = await elk.layout(retryGraph);
+    return stackCollaborationVertically(layouted);
+  }
 }
 
 export { runElkLayout, logicCoreToElk, buildSingleProcessElk, buildLanedProcessElk, buildMultiPoolElk, buildElkNode, buildElkEdge, elkDefaults };
