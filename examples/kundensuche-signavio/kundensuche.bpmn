@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:message id="Message_1" name="Message" />
+  <bpmn:error id="Error_2" name="Error" />
+  <bpmn:collaboration id="Collaboration_1">
+    <bpmn:participant id="Participant_Process" name="Companyname" processRef="Process" />
+    <bpmn:participant id="Participant_Pool_Kunde" name="Kunde" />
+    <bpmn:messageFlow id="mf_kontaktaufnahme" name="Kontaktaufnahme" sourceRef="Participant_Pool_Kunde" targetRef="start_gp_gesucht" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Process">
+      <bpmn:lane id="lane_service_sales" name="Service &#38; Sales Mitarbeiter">
+        <bpmn:flowNodeRef>start_gp_gesucht</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>gw_suchsystem_merge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>gw_suchsystem_wahl</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>task_suchkriterien_eingeben</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>task_salesforce_suchen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>task_ergebnisliste_erstellen_oben</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>task_ergebnisliste_erstellen_unten</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>gw_merge_suche</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>gw_treffer_vorhanden</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>task_ergebnisliste_anzeigen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>task_fehlermeldung_bestaetigen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>task_ergebnisliste_filtern</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>gw_nochmalige_suche</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>task_kunde_auswaehlen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>gw_kundenanlage_gewuenscht</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>end_erfolgreich</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>end_weiter_kundenanlage</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>end_erfolglos</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="start_gp_gesucht" name="Es wird ein Geschäftspartner gesucht">
+      <bpmn:documentation>Mögliche Kontaktkanäle: Telefon, Brief, Fax, E-Mail, Chat, Visitenkarte etc.</bpmn:documentation>
+      <bpmn:outgoing>f_start_gw</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Message_1" />
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="gw_suchsystem_merge" name="" gatewayDirection="Converging">
+      <bpmn:incoming>f_start_gw</bpmn:incoming>
+      <bpmn:incoming>f_nochmal_loop</bpmn:incoming>
+      <bpmn:outgoing>f_merge_wahl</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="gw_suchsystem_wahl" name="Welches Suchsystem?" gatewayDirection="Diverging" default="f_gw_salesforce">
+      <bpmn:documentation>Auswahl anhand der vorliegenden Kundendaten. Pfad 'Suchkriterien bekannt': mind. eine Information aus Geschäftspartnernummer/Name/Adresse/Telefon/E-Mail ODER Belegnummern (Rechnung/Auftrag/Lieferschein) ODER SAP-ECC-Debitorennummer. Pfad 'Geschäftspartner-/Debitorennummer bekannt': mind. eine Information aus Geschäftspartnernummer/SAP-ECC-Debitorennummer/Name/Adresse/Telefon/E-Mail/Vorgangsnummer.</bpmn:documentation>
+      <bpmn:incoming>f_merge_wahl</bpmn:incoming>
+      <bpmn:outgoing>f_gw_eingabe</bpmn:outgoing>
+      <bpmn:outgoing>f_gw_salesforce</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="task_suchkriterien_eingeben" name="Suchkriterien eingeben">
+      <bpmn:incoming>f_gw_eingabe</bpmn:incoming>
+      <bpmn:outgoing>f_eingabe_ergoben</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="task_salesforce_suchen" name="Geschäftspartner in Salesforce suchen">
+      <bpmn:incoming>f_gw_salesforce</bpmn:incoming>
+      <bpmn:outgoing>f_salesforce_ergunten</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="task_ergebnisliste_erstellen_oben" name="Ergebnisliste erstellen">
+      <bpmn:incoming>f_eingabe_ergoben</bpmn:incoming>
+      <bpmn:outgoing>f_ergoben_merge</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="task_ergebnisliste_erstellen_unten" name="Ergebnisliste erstellen">
+      <bpmn:incoming>f_salesforce_ergunten</bpmn:incoming>
+      <bpmn:outgoing>f_ergunten_merge</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="gw_merge_suche" name="" gatewayDirection="Converging">
+      <bpmn:incoming>f_ergoben_merge</bpmn:incoming>
+      <bpmn:incoming>f_ergunten_merge</bpmn:incoming>
+      <bpmn:outgoing>f_merge_treffer</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="gw_treffer_vorhanden" name="Treffer vorhanden?" gatewayDirection="Diverging" default="f_treffer_fehlermeldung">
+      <bpmn:incoming>f_merge_treffer</bpmn:incoming>
+      <bpmn:outgoing>f_treffer_anzeigen</bpmn:outgoing>
+      <bpmn:outgoing>f_treffer_fehlermeldung</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="task_ergebnisliste_anzeigen" name="Ergebnisliste anzeigen">
+      <bpmn:incoming>f_treffer_anzeigen</bpmn:incoming>
+      <bpmn:outgoing>f_anzeigen_filtern</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="task_fehlermeldung_bestaetigen" name="Fehlermeldung &#39;keine Kunden gefunden&#39; bestätigen">
+      <bpmn:incoming>f_treffer_fehlermeldung</bpmn:incoming>
+      <bpmn:outgoing>f_fehlermeldung_nochmal</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="task_ergebnisliste_filtern" name="Ergebnisliste filtern">
+      <bpmn:incoming>f_anzeigen_filtern</bpmn:incoming>
+      <bpmn:outgoing>f_filtern_auswaehlen</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="gw_nochmalige_suche" name="Nochmalige Suche gewünscht?" gatewayDirection="Diverging" default="f_nochmal_kundenanlage">
+      <bpmn:incoming>f_fehlermeldung_nochmal</bpmn:incoming>
+      <bpmn:outgoing>f_nochmal_loop</bpmn:outgoing>
+      <bpmn:outgoing>f_nochmal_kundenanlage</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="task_kunde_auswaehlen" name="Kunde aus Ergebnisliste auswählen">
+      <bpmn:incoming>f_filtern_auswaehlen</bpmn:incoming>
+      <bpmn:outgoing>f_auswaehlen_ende</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="gw_kundenanlage_gewuenscht" name="Kundenanlage gewünscht?" gatewayDirection="Diverging" default="f_kundenanlage_erfolglos">
+      <bpmn:incoming>f_nochmal_kundenanlage</bpmn:incoming>
+      <bpmn:outgoing>f_kundenanlage_weiter</bpmn:outgoing>
+      <bpmn:outgoing>f_kundenanlage_erfolglos</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="end_erfolgreich" name="Kundensuche/-matching erfolgreich abgeschlossen">
+      <bpmn:incoming>f_auswaehlen_ende</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="end_weiter_kundenanlage" name="Weiter mit Kundenanlage-Prozess">
+      <bpmn:documentation>Übergabe an Folgeprozess 'Anlage Kunde durch HG-Unit' (nicht Teil dieses Diagramms).</bpmn:documentation>
+      <bpmn:incoming>f_kundenanlage_weiter</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="end_erfolglos" name="Kundensuche/-matching erfolglos beendet">
+      <bpmn:incoming>f_kundenanlage_erfolglos</bpmn:incoming>
+      <bpmn:terminateEventDefinition />
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="f_start_gw" sourceRef="start_gp_gesucht" targetRef="gw_suchsystem_merge" />
+    <bpmn:sequenceFlow id="f_merge_wahl" sourceRef="gw_suchsystem_merge" targetRef="gw_suchsystem_wahl" />
+    <bpmn:sequenceFlow id="f_gw_eingabe" name="Suchkriterien bekannt" sourceRef="gw_suchsystem_wahl" targetRef="task_suchkriterien_eingeben">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">Suchkriterien bekannt</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f_eingabe_ergoben" sourceRef="task_suchkriterien_eingeben" targetRef="task_ergebnisliste_erstellen_oben" />
+    <bpmn:sequenceFlow id="f_ergoben_merge" sourceRef="task_ergebnisliste_erstellen_oben" targetRef="gw_merge_suche" />
+    <bpmn:sequenceFlow id="f_gw_salesforce" name="GP-/Debitorennr. bekannt" sourceRef="gw_suchsystem_wahl" targetRef="task_salesforce_suchen" />
+    <bpmn:sequenceFlow id="f_salesforce_ergunten" sourceRef="task_salesforce_suchen" targetRef="task_ergebnisliste_erstellen_unten" />
+    <bpmn:sequenceFlow id="f_ergunten_merge" sourceRef="task_ergebnisliste_erstellen_unten" targetRef="gw_merge_suche" />
+    <bpmn:sequenceFlow id="f_merge_treffer" sourceRef="gw_merge_suche" targetRef="gw_treffer_vorhanden" />
+    <bpmn:sequenceFlow id="f_treffer_anzeigen" name="1 - n Treffer" sourceRef="gw_treffer_vorhanden" targetRef="task_ergebnisliste_anzeigen">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">1 - n Treffer</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f_anzeigen_filtern" sourceRef="task_ergebnisliste_anzeigen" targetRef="task_ergebnisliste_filtern" />
+    <bpmn:sequenceFlow id="f_filtern_auswaehlen" sourceRef="task_ergebnisliste_filtern" targetRef="task_kunde_auswaehlen" />
+    <bpmn:sequenceFlow id="f_auswaehlen_ende" sourceRef="task_kunde_auswaehlen" targetRef="end_erfolgreich" />
+    <bpmn:sequenceFlow id="f_treffer_fehlermeldung" name="kein Treffer" sourceRef="gw_treffer_vorhanden" targetRef="task_fehlermeldung_bestaetigen" />
+    <bpmn:sequenceFlow id="f_fehlermeldung_nochmal" sourceRef="task_fehlermeldung_bestaetigen" targetRef="gw_nochmalige_suche" />
+    <bpmn:sequenceFlow id="f_nochmal_loop" name="Ja" sourceRef="gw_nochmalige_suche" targetRef="gw_suchsystem_merge">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">Ja</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f_nochmal_kundenanlage" name="Nein" sourceRef="gw_nochmalige_suche" targetRef="gw_kundenanlage_gewuenscht" />
+    <bpmn:sequenceFlow id="f_kundenanlage_weiter" name="Ja" sourceRef="gw_kundenanlage_gewuenscht" targetRef="end_weiter_kundenanlage">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">Ja</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f_kundenanlage_erfolglos" name="Nein" sourceRef="gw_kundenanlage_gewuenscht" targetRef="end_erfolglos" />
+    <bpmn:textAnnotation id="ann_system_tbd_1">
+      <bpmn:text>System t.b.d.</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="ann_system_tbd_2">
+      <bpmn:text>System t.b.d.</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="ann_salesforce_1">
+      <bpmn:text>Salesforce, Uniserv-Scope 2</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="ann_salesforce_2">
+      <bpmn:text>Salesforce</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="ann_system_3">
+      <bpmn:text>Salesforce, System t.b.d.</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="ann_system_4">
+      <bpmn:text>Salesforce, System t.b.d.</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="ann_system_5">
+      <bpmn:text>Salesforce, System t.b.d.</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="assoc_4" sourceRef="task_suchkriterien_eingeben" targetRef="ann_system_tbd_1" />
+    <bpmn:association id="assoc_5" sourceRef="task_ergebnisliste_erstellen_oben" targetRef="ann_system_tbd_2" />
+    <bpmn:association id="assoc_6" sourceRef="task_salesforce_suchen" targetRef="ann_salesforce_1" />
+    <bpmn:association id="assoc_7" sourceRef="task_ergebnisliste_erstellen_unten" targetRef="ann_salesforce_2" />
+    <bpmn:association id="assoc_8" sourceRef="task_ergebnisliste_anzeigen" targetRef="ann_system_3" />
+    <bpmn:association id="assoc_9" sourceRef="task_ergebnisliste_filtern" targetRef="ann_system_4" />
+    <bpmn:association id="assoc_10" sourceRef="task_kunde_auswaehlen" targetRef="ann_system_5" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1">
+      <bpmndi:BPMNShape id="Participant_Process_di" bpmnElement="Participant_Process" isHorizontal="true">
+        <dc:Bounds x="20" y="60" width="1952" height="358.5" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_service_sales_di" bpmnElement="lane_service_sales" isHorizontal="true">
+        <dc:Bounds x="50" y="60" width="1922" height="358.5" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_Pool_Kunde_di" bpmnElement="Participant_Pool_Kunde" isHorizontal="true">
+        <dc:Bounds x="20" y="543.5" width="1952" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="start_gp_gesucht_di" bpmnElement="start_gp_gesucht">
+        <dc:Bounds x="140" y="127.5" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="113" y="173.5" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_suchsystem_merge_di" bpmnElement="gw_suchsystem_merge" isMarkerVisible="true">
+        <dc:Bounds x="256" y="120.5" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_suchsystem_wahl_di" bpmnElement="gw_suchsystem_wahl" isMarkerVisible="true">
+        <dc:Bounds x="386" y="107.5" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="366" y="167.5" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_suchkriterien_eingeben_di" bpmnElement="task_suchkriterien_eingeben">
+        <dc:Bounds x="596" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_salesforce_suchen_di" bpmnElement="task_salesforce_suchen">
+        <dc:Bounds x="616" y="220" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_ergebnisliste_erstellen_oben_di" bpmnElement="task_ergebnisliste_erstellen_oben">
+        <dc:Bounds x="776" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_ergebnisliste_erstellen_unten_di" bpmnElement="task_ergebnisliste_erstellen_unten">
+        <dc:Bounds x="796" y="220" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_merge_suche_di" bpmnElement="gw_merge_suche" isMarkerVisible="true">
+        <dc:Bounds x="956" y="107.5" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_treffer_vorhanden_di" bpmnElement="gw_treffer_vorhanden" isMarkerVisible="true">
+        <dc:Bounds x="1086" y="107.5" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1066" y="167.5" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_ergebnisliste_anzeigen_di" bpmnElement="task_ergebnisliste_anzeigen">
+        <dc:Bounds x="1296" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_fehlermeldung_bestaetigen_di" bpmnElement="task_fehlermeldung_bestaetigen">
+        <dc:Bounds x="1276" y="220" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_ergebnisliste_filtern_di" bpmnElement="task_ergebnisliste_filtern">
+        <dc:Bounds x="1476" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_nochmalige_suche_di" bpmnElement="gw_nochmalige_suche" isMarkerVisible="true">
+        <dc:Bounds x="1456" y="247.5" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1436" y="307.5" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_kunde_auswaehlen_di" bpmnElement="task_kunde_auswaehlen">
+        <dc:Bounds x="1656" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_kundenanlage_gewuenscht_di" bpmnElement="gw_kundenanlage_gewuenscht" isMarkerVisible="true">
+        <dc:Bounds x="1666" y="247.5" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1646" y="307.5" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_erfolgreich_di" bpmnElement="end_erfolgreich">
+        <dc:Bounds x="1836" y="101.5" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1809" y="147.5" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_weiter_kundenanlage_di" bpmnElement="end_weiter_kundenanlage">
+        <dc:Bounds x="1876" y="241.5" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1849" y="287.5" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_erfolglos_di" bpmnElement="end_erfolglos">
+        <dc:Bounds x="1856" y="362.5" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1829" y="408.5" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_system_tbd_1_di" bpmnElement="ann_system_tbd_1">
+        <dc:Bounds x="596" y="190" width="100" height="30" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_system_tbd_2_di" bpmnElement="ann_system_tbd_2">
+        <dc:Bounds x="776" y="190" width="100" height="30" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_salesforce_1_di" bpmnElement="ann_salesforce_1">
+        <dc:Bounds x="616" y="330" width="100" height="30" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_salesforce_2_di" bpmnElement="ann_salesforce_2">
+        <dc:Bounds x="796" y="330" width="100" height="30" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_system_3_di" bpmnElement="ann_system_3">
+        <dc:Bounds x="1296" y="190" width="100" height="30" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_system_4_di" bpmnElement="ann_system_4">
+        <dc:Bounds x="1476" y="190" width="100" height="30" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ann_system_5_di" bpmnElement="ann_system_5">
+        <dc:Bounds x="1656" y="190" width="100" height="30" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="f_start_gw_di" bpmnElement="f_start_gw">
+        <di:waypoint x="176" y="146" />
+        <di:waypoint x="256.5" y="146" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_merge_wahl_di" bpmnElement="f_merge_wahl">
+        <di:waypoint x="293.5" y="133" />
+        <di:waypoint x="386.5" y="133" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_gw_eingabe_di" bpmnElement="f_gw_eingabe">
+        <di:waypoint x="423.5" y="120" />
+        <di:waypoint x="596" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="437.5" y="107" width="144.5" height="16" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_eingabe_ergoben_di" bpmnElement="f_eingabe_ergoben">
+        <di:waypoint x="696" y="120" />
+        <di:waypoint x="776" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_ergoben_merge_di" bpmnElement="f_ergoben_merge">
+        <di:waypoint x="876" y="120" />
+        <di:waypoint x="968.5" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_gw_salesforce_di" bpmnElement="f_gw_salesforce">
+        <di:waypoint x="423.5" y="145" />
+        <di:waypoint x="423.5" y="260" />
+        <di:waypoint x="616" y="260" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="437.8" y="247" width="164" height="16" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_salesforce_ergunten_di" bpmnElement="f_salesforce_ergunten">
+        <di:waypoint x="716" y="260" />
+        <di:waypoint x="796" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_ergunten_merge_di" bpmnElement="f_ergunten_merge">
+        <di:waypoint x="896" y="260" />
+        <di:waypoint x="968.5" y="260" />
+        <di:waypoint x="968.5" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_merge_treffer_di" bpmnElement="f_merge_treffer">
+        <di:waypoint x="1005.5" y="133" />
+        <di:waypoint x="1086.5" y="133" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_treffer_anzeigen_di" bpmnElement="f_treffer_anzeigen">
+        <di:waypoint x="1123.5" y="120" />
+        <di:waypoint x="1296" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1163.5" y="107" width="92.5" height="16" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_anzeigen_filtern_di" bpmnElement="f_anzeigen_filtern">
+        <di:waypoint x="1396" y="120" />
+        <di:waypoint x="1476" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_filtern_auswaehlen_di" bpmnElement="f_filtern_auswaehlen">
+        <di:waypoint x="1576" y="120" />
+        <di:waypoint x="1656" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_auswaehlen_ende_di" bpmnElement="f_auswaehlen_ende">
+        <di:waypoint x="1756" y="120" />
+        <di:waypoint x="1836" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_treffer_fehlermeldung_di" bpmnElement="f_treffer_fehlermeldung">
+        <di:waypoint x="1123.5" y="145" />
+        <di:waypoint x="1276" y="145" />
+        <di:waypoint x="1276" y="260" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1156.8" y="132" width="86" height="16" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_fehlermeldung_nochmal_di" bpmnElement="f_fehlermeldung_nochmal">
+        <di:waypoint x="1376" y="260" />
+        <di:waypoint x="1468.5" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_nochmal_loop_di" bpmnElement="f_nochmal_loop">
+        <di:waypoint x="1481" y="297.5" />
+        <di:waypoint x="1481" y="385" />
+        <di:waypoint x="281" y="385" />
+        <di:waypoint x="281" y="170.5" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="870.5" y="372" width="21" height="16" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_nochmal_kundenanlage_di" bpmnElement="f_nochmal_kundenanlage">
+        <di:waypoint x="1505.5" y="273" />
+        <di:waypoint x="1666.5" y="273" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1569" y="260" width="34" height="16" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_kundenanlage_weiter_di" bpmnElement="f_kundenanlage_weiter">
+        <di:waypoint x="1703.5" y="260" />
+        <di:waypoint x="1876" y="260" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1779.3" y="247" width="21" height="16" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_kundenanlage_erfolglos_di" bpmnElement="f_kundenanlage_erfolglos">
+        <di:waypoint x="1703.5" y="285" />
+        <di:waypoint x="1856" y="285" />
+        <di:waypoint x="1856" y="381" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1762.8" y="272" width="34" height="16" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="mf_kontaktaufnahme_di" bpmnElement="mf_kontaktaufnahme">
+        <di:waypoint x="996" y="543.5" />
+        <di:waypoint x="996" y="481" />
+        <di:waypoint x="158" y="481" />
+        <di:waypoint x="158" y="163.5" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_4_di" bpmnElement="assoc_4">
+        <di:waypoint x="646" y="160" />
+        <di:waypoint x="646" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_5_di" bpmnElement="assoc_5">
+        <di:waypoint x="826" y="160" />
+        <di:waypoint x="826" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_6_di" bpmnElement="assoc_6">
+        <di:waypoint x="666" y="300" />
+        <di:waypoint x="666" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_7_di" bpmnElement="assoc_7">
+        <di:waypoint x="846" y="300" />
+        <di:waypoint x="846" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_8_di" bpmnElement="assoc_8">
+        <di:waypoint x="1346" y="160" />
+        <di:waypoint x="1346" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_9_di" bpmnElement="assoc_9">
+        <di:waypoint x="1526" y="160" />
+        <di:waypoint x="1526" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="assoc_10_di" bpmnElement="assoc_10">
+        <di:waypoint x="1706" y="160" />
+        <di:waypoint x="1706" y="190" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

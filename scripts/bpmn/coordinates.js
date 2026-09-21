@@ -401,6 +401,75 @@ function buildCoordinateMap(elkResult, lc) {
     }
   }
 
+  // §5.0e2  Same-lane loop-back routing: an edge whose target lands to the LEFT
+  //         of its source after layout is a rework/retry loop — ELK's layered
+  //         algorithm (direction RIGHT) never puts a purely forward edge's
+  //         target behind its source, so this is topology showing through the
+  //         geometry, not layout noise. Left alone (or to §5.0e above, which
+  //         only fires once ELK's route strays outside the pool), such an edge
+  //         exits a side port at the same y as the forward flow and reads as a
+  //         continuation of the main line rather than a loop. Route it clear
+  //         of the row instead — the conventional BPMN "feedback loop" shape —
+  //         over the TOP or under the BOTTOM, whichever side has more slack
+  //         (lane boundary to nearest same-lane obstacle) for THIS edge's span;
+  //         a diagram with artifacts stacked below its tasks has more room
+  //         above, one with artifacts above has more room below, so this is
+  //         decided per edge, not fixed to one side project-wide.
+  //         Cross-lane back-edges are left to §5.0e/§5.0f: the "clear the row"
+  //         logic below only reasons about one lane's nodes.
+  for (const proc of allProcesses) {
+    for (const edge of (proc.edges || [])) {
+      const srcC = coords[edge.source];
+      const tgtC = coords[edge.target];
+      if (!srcC || !tgtC) continue;
+
+      const srcCx = srcC.x + srcC.w / 2;
+      const tgtCx = tgtC.x + tgtC.w / 2;
+      if (tgtCx >= srcCx - 10) continue; // not backward
+
+      const srcNode = (proc.nodes || []).find(n => n.id === edge.source);
+      const tgtNode = (proc.nodes || []).find(n => n.id === edge.target);
+      const lane = laneOfNode(srcNode, proc);
+      if (lane !== laneOfNode(tgtNode, proc)) continue;
+
+      const poolC = poolCoords[proc.id] || poolCoords['_singlePool'];
+      const rowTop    = lane ? laneCoords[lane]?.y : poolC?.y;
+      const rowHeight = lane ? laneCoords[lane]?.h : poolC?.h;
+      if (rowTop === undefined || rowHeight === undefined) continue;
+      const rowBottom = rowTop + rowHeight;
+
+      // Clear every same-lane node (incl. artifacts — they carry a `lane` too)
+      // whose footprint falls between source and target, on both sides.
+      const minX = Math.min(srcCx, tgtCx);
+      const maxX = Math.max(srcCx, tgtCx);
+      let minNodeTop    = Math.min(srcC.y, tgtC.y);
+      let maxNodeBottom = Math.max(srcC.y + srcC.h, tgtC.y + tgtC.h);
+      for (const n of (proc.nodes || [])) {
+        if (laneOfNode(n, proc) !== lane) continue;
+        const c = coords[n.id];
+        if (!c || c.x + c.w < minX || c.x > maxX) continue;
+        minNodeTop    = Math.min(minNodeTop, c.y);
+        maxNodeBottom = Math.max(maxNodeBottom, c.y + c.h);
+      }
+
+      const margin = 25;
+      const topSlack    = minNodeTop - rowTop;
+      const bottomSlack = rowBottom - maxNodeBottom;
+      const dipY = topSlack >= bottomSlack
+        ? Math.max(rowTop + 8, minNodeTop - margin)
+        : Math.min(rowBottom - 8, maxNodeBottom + margin);
+      const srcY = topSlack >= bottomSlack ? srcC.y : srcC.y + srcC.h;
+      const tgtY = topSlack >= bottomSlack ? tgtC.y : tgtC.y + tgtC.h;
+
+      edgeCoords[edge.id] = [
+        { x: srcCx, y: srcY },
+        { x: srcCx, y: dipY },
+        { x: tgtCx, y: dipY },
+        { x: tgtCx, y: tgtY },
+      ];
+    }
+  }
+
   // §5.0f  Cross-lane edge deconfliction: detect overlapping horizontal segments
   //         of cross-lane edges and nudge them apart to reduce visual confusion.
   if (CFG.layout?.crossLaneDeconflict !== false) {
