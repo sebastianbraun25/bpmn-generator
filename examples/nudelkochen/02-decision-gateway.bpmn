@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Process_Nudeln_Entscheidung" isExecutable="false">
+    <bpmn:startEvent id="start_kochen" name="Kochvorgang gestartet">
+      <bpmn:outgoing>flow_start_wasser</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="task_wasser_aufsetzen" name="Wasser aufsetzen">
+      <bpmn:incoming>flow_start_wasser</bpmn:incoming>
+      <bpmn:outgoing>flow_wasser_hinzufuegen</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="task_nudeln_hinzufuegen" name="Nudeln hinzufügen">
+      <bpmn:incoming>flow_wasser_hinzufuegen</bpmn:incoming>
+      <bpmn:outgoing>flow_hinzufuegen_kochen</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="task_nudeln_kochen" name="Nudeln kochen">
+      <bpmn:incoming>flow_hinzufuegen_kochen</bpmn:incoming>
+      <bpmn:incoming>flow_gw_weiterkochen</bpmn:incoming>
+      <bpmn:outgoing>flow_kochen_gw</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="gw_al_dente" name="Nudeln al dente?" gatewayDirection="Diverging" default="flow_gw_weiterkochen">
+      <bpmn:incoming>flow_kochen_gw</bpmn:incoming>
+      <bpmn:outgoing>flow_gw_abgiessen</bpmn:outgoing>
+      <bpmn:outgoing>flow_gw_weiterkochen</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="task_nudeln_abgiessen" name="Nudeln abgießen">
+      <bpmn:incoming>flow_gw_abgiessen</bpmn:incoming>
+      <bpmn:outgoing>flow_abgiessen_ende</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="end_fertig" name="Nudeln fertig">
+      <bpmn:incoming>flow_abgiessen_ende</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:boundaryEvent id="boundary_timer_limit" name="Kochzeit-Limit erreicht" attachedToRef="task_nudeln_kochen">
+      <bpmn:outgoing>flow_timer_verkocht</bpmn:outgoing>
+      <bpmn:timerEventDefinition />
+    </bpmn:boundaryEvent>
+    <bpmn:endEvent id="end_verkocht" name="Nudeln verkocht">
+      <bpmn:incoming>flow_timer_verkocht</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="flow_start_wasser" sourceRef="start_kochen" targetRef="task_wasser_aufsetzen" />
+    <bpmn:sequenceFlow id="flow_wasser_hinzufuegen" sourceRef="task_wasser_aufsetzen" targetRef="task_nudeln_hinzufuegen" />
+    <bpmn:sequenceFlow id="flow_hinzufuegen_kochen" sourceRef="task_nudeln_hinzufuegen" targetRef="task_nudeln_kochen" />
+    <bpmn:sequenceFlow id="flow_kochen_gw" sourceRef="task_nudeln_kochen" targetRef="gw_al_dente" />
+    <bpmn:sequenceFlow id="flow_gw_abgiessen" name="Ja" sourceRef="gw_al_dente" targetRef="task_nudeln_abgiessen">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">Ja</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="flow_gw_weiterkochen" name="Nein" sourceRef="gw_al_dente" targetRef="task_nudeln_kochen" />
+    <bpmn:sequenceFlow id="flow_abgiessen_ende" sourceRef="task_nudeln_abgiessen" targetRef="end_fertig" />
+    <bpmn:sequenceFlow id="flow_timer_verkocht" sourceRef="boundary_timer_limit" targetRef="end_verkocht" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_Nudeln_Entscheidung">
+      <bpmndi:BPMNShape id="start_kochen_di" bpmnElement="start_kochen">
+        <dc:Bounds x="12" y="40.5" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="-15" y="86.5" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_wasser_aufsetzen_di" bpmnElement="task_wasser_aufsetzen">
+        <dc:Bounds x="128" y="19" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_nudeln_hinzufuegen_di" bpmnElement="task_nudeln_hinzufuegen">
+        <dc:Bounds x="308" y="19" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_nudeln_kochen_di" bpmnElement="task_nudeln_kochen">
+        <dc:Bounds x="488" y="19" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw_al_dente_di" bpmnElement="gw_al_dente" isMarkerVisible="true">
+        <dc:Bounds x="748" y="26.5" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="728" y="86.5" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_nudeln_abgiessen_di" bpmnElement="task_nudeln_abgiessen">
+        <dc:Bounds x="958" y="12" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_fertig_di" bpmnElement="end_fertig">
+        <dc:Bounds x="1138" y="33.5" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1111" y="79.5" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="boundary_timer_limit_di" bpmnElement="boundary_timer_limit">
+        <dc:Bounds x="520" y="81" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="493" y="127" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_verkocht_di" bpmnElement="end_verkocht">
+        <dc:Bounds x="648" y="138.5" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="621" y="184.5" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow_start_wasser_di" bpmnElement="flow_start_wasser">
+        <di:waypoint x="48" y="59" />
+        <di:waypoint x="128" y="59" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_wasser_hinzufuegen_di" bpmnElement="flow_wasser_hinzufuegen">
+        <di:waypoint x="228" y="59" />
+        <di:waypoint x="308" y="59" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_hinzufuegen_kochen_di" bpmnElement="flow_hinzufuegen_kochen">
+        <di:waypoint x="408" y="59" />
+        <di:waypoint x="488" y="59" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_kochen_gw_di" bpmnElement="flow_kochen_gw">
+        <di:waypoint x="588" y="39" />
+        <di:waypoint x="760.5" y="39" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_gw_abgiessen_di" bpmnElement="flow_gw_abgiessen">
+        <di:waypoint x="797.5" y="52" />
+        <di:waypoint x="958" y="52" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="867.3" y="39" width="21" height="16" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_gw_weiterkochen_di" bpmnElement="flow_gw_weiterkochen">
+        <di:waypoint x="760.5" y="64" />
+        <di:waypoint x="588" y="64" />
+        <di:waypoint x="588" y="59" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="657.3" y="51" width="34" height="16" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_abgiessen_ende_di" bpmnElement="flow_abgiessen_ende">
+        <di:waypoint x="1058" y="52" />
+        <di:waypoint x="1138" y="52" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_timer_verkocht_di" bpmnElement="flow_timer_verkocht">
+        <di:waypoint x="556" y="99" />
+        <di:waypoint x="602" y="99" />
+        <di:waypoint x="602" y="156.5" />
+        <di:waypoint x="648" y="156.5" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Process_Nudeln_Einfach" isExecutable="false">
+    <bpmn:startEvent id="start_kochen" name="Kochvorgang gestartet">
+      <bpmn:outgoing>flow_start_wasser</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="task_wasser_aufsetzen" name="Wasser aufsetzen">
+      <bpmn:incoming>flow_start_wasser</bpmn:incoming>
+      <bpmn:outgoing>flow_wasser_salzen</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="task_wasser_salzen" name="Wasser salzen">
+      <bpmn:incoming>flow_wasser_salzen</bpmn:incoming>
+      <bpmn:outgoing>flow_salzen_hinzufuegen</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="task_nudeln_hinzufuegen" name="Nudeln hinzufügen">
+      <bpmn:incoming>flow_salzen_hinzufuegen</bpmn:incoming>
+      <bpmn:outgoing>flow_hinzufuegen_kochen</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="task_nudeln_kochen" name="Nudeln kochen">
+      <bpmn:incoming>flow_hinzufuegen_kochen</bpmn:incoming>
+      <bpmn:outgoing>flow_kochen_abgiessen</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="task_nudeln_abgiessen" name="Nudeln abgießen">
+      <bpmn:incoming>flow_kochen_abgiessen</bpmn:incoming>
+      <bpmn:outgoing>flow_abgiessen_ende</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="end_fertig" name="Nudeln fertig">
+      <bpmn:incoming>flow_abgiessen_ende</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="flow_start_wasser" sourceRef="start_kochen" targetRef="task_wasser_aufsetzen" />
+    <bpmn:sequenceFlow id="flow_wasser_salzen" sourceRef="task_wasser_aufsetzen" targetRef="task_wasser_salzen" />
+    <bpmn:sequenceFlow id="flow_salzen_hinzufuegen" sourceRef="task_wasser_salzen" targetRef="task_nudeln_hinzufuegen" />
+    <bpmn:sequenceFlow id="flow_hinzufuegen_kochen" sourceRef="task_nudeln_hinzufuegen" targetRef="task_nudeln_kochen" />
+    <bpmn:sequenceFlow id="flow_kochen_abgiessen" sourceRef="task_nudeln_kochen" targetRef="task_nudeln_abgiessen" />
+    <bpmn:sequenceFlow id="flow_abgiessen_ende" sourceRef="task_nudeln_abgiessen" targetRef="end_fertig" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_Nudeln_Einfach">
+      <bpmndi:BPMNShape id="start_kochen_di" bpmnElement="start_kochen">
+        <dc:Bounds x="12" y="33.5" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="-15" y="79.5" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_wasser_aufsetzen_di" bpmnElement="task_wasser_aufsetzen">
+        <dc:Bounds x="128" y="12" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_wasser_salzen_di" bpmnElement="task_wasser_salzen">
+        <dc:Bounds x="308" y="12" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_nudeln_hinzufuegen_di" bpmnElement="task_nudeln_hinzufuegen">
+        <dc:Bounds x="488" y="12" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_nudeln_kochen_di" bpmnElement="task_nudeln_kochen">
+        <dc:Bounds x="668" y="12" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_nudeln_abgiessen_di" bpmnElement="task_nudeln_abgiessen">
+        <dc:Bounds x="848" y="12" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_fertig_di" bpmnElement="end_fertig">
+        <dc:Bounds x="1028" y="33.5" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1001" y="79.5" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow_start_wasser_di" bpmnElement="flow_start_wasser">
+        <di:waypoint x="48" y="52" />
+        <di:waypoint x="128" y="52" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_wasser_salzen_di" bpmnElement="flow_wasser_salzen">
+        <di:waypoint x="228" y="52" />
+        <di:waypoint x="308" y="52" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_salzen_hinzufuegen_di" bpmnElement="flow_salzen_hinzufuegen">
+        <di:waypoint x="408" y="52" />
+        <di:waypoint x="488" y="52" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_hinzufuegen_kochen_di" bpmnElement="flow_hinzufuegen_kochen">
+        <di:waypoint x="588" y="52" />
+        <di:waypoint x="668" y="52" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_kochen_abgiessen_di" bpmnElement="flow_kochen_abgiessen">
+        <di:waypoint x="768" y="52" />
+        <di:waypoint x="848" y="52" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_abgiessen_ende_di" bpmnElement="flow_abgiessen_ende">
+        <di:waypoint x="948" y="52" />
+        <di:waypoint x="1028" y="52" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

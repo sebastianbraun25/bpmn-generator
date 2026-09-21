@@ -1,0 +1,87 @@
+{
+  "associations": [
+    { "id": "assoc_4", "source": "task_suchkriterien_eingeben", "target": "ann_system_tbd_1" },
+    { "id": "assoc_5", "source": "task_ergebnisliste_erstellen_oben", "target": "ann_system_tbd_2" },
+    { "id": "assoc_6", "source": "task_salesforce_suchen", "target": "ann_salesforce_1" },
+    { "id": "assoc_7", "source": "task_ergebnisliste_erstellen_unten", "target": "ann_salesforce_2" },
+    { "id": "assoc_8", "source": "task_ergebnisliste_anzeigen", "target": "ann_system_3" },
+    { "id": "assoc_9", "source": "task_ergebnisliste_filtern", "target": "ann_system_4" },
+    { "id": "assoc_10", "source": "task_kunde_auswaehlen", "target": "ann_system_5" }
+  ],
+  "collapsedPools": [
+    { "id": "Pool_Kunde", "name": "Kunde" }
+  ],
+  "messageFlows": [
+    { "id": "mf_kontaktaufnahme", "name": "Kontaktaufnahme", "source": "Pool_Kunde", "target": "start_gp_gesucht" }
+  ],
+  "pools": [
+    {
+      "id": "Process",
+      "name": "Companyname",
+      "lanes": [
+        { "id": "lane_service_sales", "name": "Service & Sales Mitarbeiter" }
+      ],
+      "nodes": [
+        { "id": "start_gp_gesucht", "type": "startEvent", "name": "Es wird ein Geschäftspartner gesucht", "lane": "lane_service_sales", "marker": "message",
+          "documentation": "Mögliche Kontaktkanäle: Telefon, Brief, Fax, E-Mail, Chat, Visitenkarte etc." },
+
+        { "id": "gw_suchsystem_merge", "type": "exclusiveGateway", "name": "", "lane": "lane_service_sales", "has_join": true },
+        { "id": "gw_suchsystem_wahl", "type": "exclusiveGateway", "name": "Welches Suchsystem?", "lane": "lane_service_sales",
+          "documentation": "Auswahl anhand der vorliegenden Kundendaten. Pfad 'Suchkriterien bekannt': mind. eine Information aus Geschäftspartnernummer/Name/Adresse/Telefon/E-Mail ODER Belegnummern (Rechnung/Auftrag/Lieferschein) ODER SAP-ECC-Debitorennummer. Pfad 'Geschäftspartner-/Debitorennummer bekannt': mind. eine Information aus Geschäftspartnernummer/SAP-ECC-Debitorennummer/Name/Adresse/Telefon/E-Mail/Vorgangsnummer." },
+
+        { "id": "task_suchkriterien_eingeben", "type": "userTask", "name": "Suchkriterien eingeben", "lane": "lane_service_sales" },
+        { "id": "ann_system_tbd_1", "type": "textAnnotation", "name": "System t.b.d.", "lane": "lane_service_sales" },
+        { "id": "task_ergebnisliste_erstellen_oben", "type": "userTask", "name": "Ergebnisliste erstellen", "lane": "lane_service_sales" },
+        { "id": "ann_system_tbd_2", "type": "textAnnotation", "name": "System t.b.d.", "lane": "lane_service_sales" },
+
+        { "id": "task_salesforce_suchen", "type": "userTask", "name": "Geschäftspartner in Salesforce suchen", "lane": "lane_service_sales" },
+        { "id": "ann_salesforce_1", "type": "textAnnotation", "name": "Salesforce, Uniserv-Scope 2", "lane": "lane_service_sales" },
+        { "id": "task_ergebnisliste_erstellen_unten", "type": "userTask", "name": "Ergebnisliste erstellen", "lane": "lane_service_sales" },
+        { "id": "ann_salesforce_2", "type": "textAnnotation", "name": "Salesforce", "lane": "lane_service_sales" },
+
+        { "id": "gw_merge_suche", "type": "exclusiveGateway", "name": "", "lane": "lane_service_sales", "has_join": true },
+        { "id": "gw_treffer_vorhanden", "type": "exclusiveGateway", "name": "Treffer vorhanden?", "lane": "lane_service_sales" },
+
+        { "id": "task_ergebnisliste_anzeigen", "type": "userTask", "name": "Ergebnisliste anzeigen", "lane": "lane_service_sales" },
+        { "id": "ann_system_3", "type": "textAnnotation", "name": "Salesforce, System t.b.d.", "lane": "lane_service_sales" },
+        { "id": "task_ergebnisliste_filtern", "type": "userTask", "name": "Ergebnisliste filtern", "lane": "lane_service_sales" },
+        { "id": "ann_system_4", "type": "textAnnotation", "name": "Salesforce, System t.b.d.", "lane": "lane_service_sales" },
+        { "id": "task_kunde_auswaehlen", "type": "userTask", "name": "Kunde aus Ergebnisliste auswählen", "lane": "lane_service_sales" },
+        { "id": "ann_system_5", "type": "textAnnotation", "name": "Salesforce, System t.b.d.", "lane": "lane_service_sales" },
+        { "id": "end_erfolgreich", "type": "endEvent", "name": "Kundensuche/-matching erfolgreich abgeschlossen", "lane": "lane_service_sales" },
+
+        { "id": "task_fehlermeldung_bestaetigen", "type": "userTask", "name": "Fehlermeldung 'keine Kunden gefunden' bestätigen", "lane": "lane_service_sales" },
+        { "id": "gw_nochmalige_suche", "type": "exclusiveGateway", "name": "Nochmalige Suche gewünscht?", "lane": "lane_service_sales" },
+        { "id": "gw_kundenanlage_gewuenscht", "type": "exclusiveGateway", "name": "Kundenanlage gewünscht?", "lane": "lane_service_sales" },
+        { "id": "end_weiter_kundenanlage", "type": "endEvent", "name": "Weiter mit Kundenanlage-Prozess", "lane": "lane_service_sales",
+          "documentation": "Übergabe an Folgeprozess 'Anlage Kunde durch HG-Unit' (nicht Teil dieses Diagramms)." },
+        { "id": "end_erfolglos", "type": "endEvent", "name": "Kundensuche/-matching erfolglos beendet", "lane": "lane_service_sales" }
+      ],
+      "edges": [
+        { "id": "f_start_gw", "source": "start_gp_gesucht", "target": "gw_suchsystem_merge", "isHappyPath": true },
+        { "id": "f_merge_wahl", "source": "gw_suchsystem_merge", "target": "gw_suchsystem_wahl", "isHappyPath": true },
+
+        { "id": "f_gw_eingabe", "source": "gw_suchsystem_wahl", "target": "task_suchkriterien_eingeben", "label": "Suchkriterien bekannt", "isHappyPath": true },
+        { "id": "f_eingabe_ergoben", "source": "task_suchkriterien_eingeben", "target": "task_ergebnisliste_erstellen_oben", "isHappyPath": true },
+        { "id": "f_ergoben_merge", "source": "task_ergebnisliste_erstellen_oben", "target": "gw_merge_suche", "isHappyPath": true },
+
+        { "id": "f_gw_salesforce", "source": "gw_suchsystem_wahl", "target": "task_salesforce_suchen", "label": "GP-/Debitorennr. bekannt", "isDefault": true },
+        { "id": "f_salesforce_ergunten", "source": "task_salesforce_suchen", "target": "task_ergebnisliste_erstellen_unten" },
+        { "id": "f_ergunten_merge", "source": "task_ergebnisliste_erstellen_unten", "target": "gw_merge_suche" },
+
+        { "id": "f_merge_treffer", "source": "gw_merge_suche", "target": "gw_treffer_vorhanden", "isHappyPath": true },
+        { "id": "f_treffer_anzeigen", "source": "gw_treffer_vorhanden", "target": "task_ergebnisliste_anzeigen", "label": "1 - n Treffer", "isHappyPath": true },
+        { "id": "f_anzeigen_filtern", "source": "task_ergebnisliste_anzeigen", "target": "task_ergebnisliste_filtern", "isHappyPath": true },
+        { "id": "f_filtern_auswaehlen", "source": "task_ergebnisliste_filtern", "target": "task_kunde_auswaehlen", "isHappyPath": true },
+        { "id": "f_auswaehlen_ende", "source": "task_kunde_auswaehlen", "target": "end_erfolgreich", "isHappyPath": true },
+
+        { "id": "f_treffer_fehlermeldung", "source": "gw_treffer_vorhanden", "target": "task_fehlermeldung_bestaetigen", "label": "kein Treffer", "isDefault": true },
+        { "id": "f_fehlermeldung_nochmal", "source": "task_fehlermeldung_bestaetigen", "target": "gw_nochmalige_suche" },
+        { "id": "f_nochmal_loop", "source": "gw_nochmalige_suche", "target": "gw_suchsystem_merge", "label": "Ja" },
+        { "id": "f_nochmal_kundenanlage", "source": "gw_nochmalige_suche", "target": "gw_kundenanlage_gewuenscht", "label": "Nein" },
+        { "id": "f_kundenanlage_weiter", "source": "gw_kundenanlage_gewuenscht", "target": "end_weiter_kundenanlage", "label": "Ja" },
+        { "id": "f_kundenanlage_erfolglos", "source": "gw_kundenanlage_gewuenscht", "target": "end_erfolglos", "label": "Nein" }
+      ]
+    }
+  ]
+}

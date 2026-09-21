@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:message id="Message_1" name="Message" />
+  <bpmn:collaboration id="Collaboration_1">
+    <bpmn:participant id="Participant_Process_Koch" name="Koch" processRef="Process_Koch" />
+    <bpmn:participant id="Participant_Process_Mitbewohner" name="Mitbewohner" processRef="Process_Mitbewohner" />
+    <bpmn:messageFlow id="mf_essen_fertig" name="Essen ist fertig" sourceRef="send_fertig" targetRef="catch_essen_fertig" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_Koch" isExecutable="false">
+    <bpmn:startEvent id="start_koch" name="Kochvorgang gestartet">
+      <bpmn:outgoing>flow_start_wasser</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="task_wasser_aufsetzen" name="Wasser aufsetzen">
+      <bpmn:incoming>flow_start_wasser</bpmn:incoming>
+      <bpmn:outgoing>flow_wasser_hinzufuegen</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="task_nudeln_hinzufuegen" name="Nudeln hinzufügen">
+      <bpmn:incoming>flow_wasser_hinzufuegen</bpmn:incoming>
+      <bpmn:outgoing>flow_hinzufuegen_kochen</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="task_nudeln_kochen" name="Nudeln kochen">
+      <bpmn:incoming>flow_hinzufuegen_kochen</bpmn:incoming>
+      <bpmn:outgoing>flow_kochen_abgiessen</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="task_nudeln_abgiessen" name="Nudeln abgießen">
+      <bpmn:incoming>flow_kochen_abgiessen</bpmn:incoming>
+      <bpmn:outgoing>flow_abgiessen_senden</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sendTask id="send_fertig" name="Fertigmeldung senden">
+      <bpmn:incoming>flow_abgiessen_senden</bpmn:incoming>
+      <bpmn:outgoing>flow_senden_ende</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="end_koch" name="Essen serviert">
+      <bpmn:incoming>flow_senden_ende</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="flow_start_wasser" sourceRef="start_koch" targetRef="task_wasser_aufsetzen" />
+    <bpmn:sequenceFlow id="flow_wasser_hinzufuegen" sourceRef="task_wasser_aufsetzen" targetRef="task_nudeln_hinzufuegen" />
+    <bpmn:sequenceFlow id="flow_hinzufuegen_kochen" sourceRef="task_nudeln_hinzufuegen" targetRef="task_nudeln_kochen" />
+    <bpmn:sequenceFlow id="flow_kochen_abgiessen" sourceRef="task_nudeln_kochen" targetRef="task_nudeln_abgiessen" />
+    <bpmn:sequenceFlow id="flow_abgiessen_senden" sourceRef="task_nudeln_abgiessen" targetRef="send_fertig" />
+    <bpmn:sequenceFlow id="flow_senden_ende" sourceRef="send_fertig" targetRef="end_koch" />
+  </bpmn:process>
+  <bpmn:process id="Process_Mitbewohner" isExecutable="false">
+    <bpmn:startEvent id="start_mitbewohner" name="Vorbereitung gestartet">
+      <bpmn:outgoing>flow_start_tisch</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="task_tisch_decken" name="Tisch decken">
+      <bpmn:incoming>flow_start_tisch</bpmn:incoming>
+      <bpmn:outgoing>flow_tisch_catch</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:intermediateCatchEvent id="catch_essen_fertig" name="Essen-fertig-Meldung erhalten">
+      <bpmn:incoming>flow_tisch_catch</bpmn:incoming>
+      <bpmn:outgoing>flow_catch_servieren</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Message_1" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:task id="task_essen_servieren" name="Nudeln servieren">
+      <bpmn:incoming>flow_catch_servieren</bpmn:incoming>
+      <bpmn:outgoing>flow_servieren_ende</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="end_mitbewohner" name="Tisch fertig gedeckt">
+      <bpmn:incoming>flow_servieren_ende</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="flow_start_tisch" sourceRef="start_mitbewohner" targetRef="task_tisch_decken" />
+    <bpmn:sequenceFlow id="flow_tisch_catch" sourceRef="task_tisch_decken" targetRef="catch_essen_fertig" />
+    <bpmn:sequenceFlow id="flow_catch_servieren" sourceRef="catch_essen_fertig" targetRef="task_essen_servieren" />
+    <bpmn:sequenceFlow id="flow_servieren_ende" sourceRef="task_essen_servieren" targetRef="end_mitbewohner" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1">
+      <bpmndi:BPMNShape id="Participant_Process_Koch_di" bpmnElement="Participant_Process_Koch" isHorizontal="true">
+        <dc:Bounds x="20" y="20" width="1202" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_Process_Mitbewohner_di" bpmnElement="Participant_Process_Mitbewohner" isHorizontal="true">
+        <dc:Bounds x="20" y="280" width="1202" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="start_koch_di" bpmnElement="start_koch">
+        <dc:Bounds x="110" y="101.5" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="83" y="147.5" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_wasser_aufsetzen_di" bpmnElement="task_wasser_aufsetzen">
+        <dc:Bounds x="226" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_nudeln_hinzufuegen_di" bpmnElement="task_nudeln_hinzufuegen">
+        <dc:Bounds x="406" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_nudeln_kochen_di" bpmnElement="task_nudeln_kochen">
+        <dc:Bounds x="586" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_nudeln_abgiessen_di" bpmnElement="task_nudeln_abgiessen">
+        <dc:Bounds x="766" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="send_fertig_di" bpmnElement="send_fertig">
+        <dc:Bounds x="946" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_koch_di" bpmnElement="end_koch">
+        <dc:Bounds x="1126" y="101.5" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1099" y="147.5" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="start_mitbewohner_di" bpmnElement="start_mitbewohner">
+        <dc:Bounds x="110" y="361.5" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="83" y="407.5" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_tisch_decken_di" bpmnElement="task_tisch_decken">
+        <dc:Bounds x="226" y="340" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="catch_essen_fertig_di" bpmnElement="catch_essen_fertig">
+        <dc:Bounds x="406" y="361.5" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="379" y="407.5" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_essen_servieren_di" bpmnElement="task_essen_servieren">
+        <dc:Bounds x="522" y="340" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_mitbewohner_di" bpmnElement="end_mitbewohner">
+        <dc:Bounds x="702" y="361.5" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="675" y="407.5" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow_start_wasser_di" bpmnElement="flow_start_wasser">
+        <di:waypoint x="146" y="120" />
+        <di:waypoint x="226" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_wasser_hinzufuegen_di" bpmnElement="flow_wasser_hinzufuegen">
+        <di:waypoint x="326" y="120" />
+        <di:waypoint x="406" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_hinzufuegen_kochen_di" bpmnElement="flow_hinzufuegen_kochen">
+        <di:waypoint x="506" y="120" />
+        <di:waypoint x="586" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_kochen_abgiessen_di" bpmnElement="flow_kochen_abgiessen">
+        <di:waypoint x="686" y="120" />
+        <di:waypoint x="766" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_abgiessen_senden_di" bpmnElement="flow_abgiessen_senden">
+        <di:waypoint x="866" y="120" />
+        <di:waypoint x="946" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_senden_ende_di" bpmnElement="flow_senden_ende">
+        <di:waypoint x="1046" y="120" />
+        <di:waypoint x="1126" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_start_tisch_di" bpmnElement="flow_start_tisch">
+        <di:waypoint x="146" y="380" />
+        <di:waypoint x="226" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_tisch_catch_di" bpmnElement="flow_tisch_catch">
+        <di:waypoint x="326" y="380" />
+        <di:waypoint x="406" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_catch_servieren_di" bpmnElement="flow_catch_servieren">
+        <di:waypoint x="442" y="380" />
+        <di:waypoint x="522" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_servieren_ende_di" bpmnElement="flow_servieren_ende">
+        <di:waypoint x="622" y="380" />
+        <di:waypoint x="702" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="mf_essen_fertig_di" bpmnElement="mf_essen_fertig">
+        <di:waypoint x="996" y="160" />
+        <di:waypoint x="996" y="250" />
+        <di:waypoint x="424" y="250" />
+        <di:waypoint x="424" y="361.5" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
